@@ -48,14 +48,12 @@
   "author": "",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/SpunkySarb/deepseek-toolkit"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "deepseek-toolkit": "^0.1.1",
-    "dotenv": "^17.4.2",
     "openai": "^5.0.0"
   },
   "devDependencies": {
