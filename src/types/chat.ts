@@ -19,6 +19,38 @@ export interface DeepSeekAssistantMessage {
   prefix?: boolean;
 }
 
-// Responses — OpenAI compatible
-export type ChatResponse = OpenAI.Chat.Completions.ChatCompletion;
-export type StreamChunk = OpenAI.Chat.Completions.ChatCompletionChunk;
+// Responses — OpenAI compatible, extended for DeepSeek
+
+export type ChatResponse = OpenAI.Chat.Completions.ChatCompletion & {
+  choices: (OpenAI.Chat.Completions.ChatCompletion.Choice & {
+    message: DeepSeekAssistantMessage;
+  })[];
+};
+
+/** Stream chunk with DeepSeek reasoning_content on the delta */
+export interface StreamChunk {
+  id: string;
+  model: string;
+  object: "chat.completion.chunk";
+  created: number;
+  choices: {
+    index: number;
+    delta: {
+      role?: string;
+      content?: string;
+      reasoning_content?: string;
+      tool_calls?: {
+        index?: number;
+        id?: string;
+        type?: "function";
+        function?: { name?: string; arguments?: string };
+      }[];
+    };
+    finish_reason: string | null;
+  }[];
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
