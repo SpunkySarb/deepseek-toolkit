@@ -94,6 +94,7 @@ export class DeepSeekClient {
       topP?: number;
       onToolCall?: ToolLoopCallbacks["onToolCall"];
       onToolResult?: ToolLoopCallbacks["onToolResult"];
+      onReasoningChunk?: ToolLoopCallbacks["onReasoningChunk"];
     },
   ): Promise<ChatResponse> {
     const prevModel = this.config.model;
@@ -121,6 +122,7 @@ export class DeepSeekClient {
         {
           onToolCall: options?.onToolCall,
           onToolResult: options?.onToolResult,
+          onReasoningChunk: options?.onReasoningChunk,
         },
       );
     } finally {
@@ -146,6 +148,7 @@ export class DeepSeekClient {
       topP?: number;
       onToolCall?: ToolLoopCallbacks["onToolCall"];
       onToolResult?: ToolLoopCallbacks["onToolResult"];
+      onReasoningChunk?: ToolLoopCallbacks["onReasoningChunk"];
     },
   ): Promise<AsyncIterable<StreamChunk>> {
     const prevModel = this.config.model;
@@ -173,6 +176,7 @@ export class DeepSeekClient {
         {
           onToolCall: options?.onToolCall,
           onToolResult: options?.onToolResult,
+          onReasoningChunk: options?.onReasoningChunk,
         },
       );
     } finally {

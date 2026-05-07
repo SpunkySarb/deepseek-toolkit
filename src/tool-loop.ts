@@ -15,6 +15,8 @@ export interface ToolLoopCallbacks {
   ) => Promise<string | null | undefined> | string | null | undefined;
   /** Called after each tool call completes with the result */
   onToolResult?: (name: string, result: string) => void;
+  /** Called with reasoning content as it streams during tool-call sub-turns */
+  onReasoningChunk?: (text: string) => void;
 }
 
 export class ToolLoop {
@@ -105,6 +107,7 @@ export class ToolLoop {
         const delta = chunk.choices[0]?.delta;
         if (delta?.reasoning_content) {
           accumulatedReasoning += delta.reasoning_content;
+          callbacks?.onReasoningChunk?.(delta.reasoning_content);
         }
         if (delta?.content) {
           hasContent = true;
