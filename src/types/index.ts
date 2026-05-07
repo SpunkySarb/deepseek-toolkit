@@ -15,6 +15,8 @@ export type {
   BraveSearchDefaults,
 } from "./config.js";
 export type {
+  JsonProperty,
+  JsonSchemaObject,
   ToolDefinition,
   ToolCall,
   ToolResult,

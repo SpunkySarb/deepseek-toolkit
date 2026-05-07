@@ -31,6 +31,8 @@ export type {
   ThinkingConfig,
   ReasoningEffort,
   BraveSearchDefaults,
+  JsonProperty,
+  JsonSchemaObject,
   ToolDefinition,
   ToolCall,
   ToolResult,

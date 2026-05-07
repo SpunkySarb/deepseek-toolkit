@@ -1,17 +1,30 @@
 import type OpenAI from "openai";
 
-// Stricter than OpenAI's FunctionDefinition — parameters must have type + properties
+/** A single property in a JSON Schema object */
+export interface JsonProperty {
+  type: string;
+  description?: string;
+  enum?: readonly string[];
+  minimum?: number;
+  maximum?: number;
+  items?: JsonProperty;
+}
+
+/** JSON Schema object definition for tool parameters */
+export interface JsonSchemaObject {
+  type: "object";
+  properties: Record<string, JsonProperty>;
+  required?: string[];
+  additionalProperties?: boolean;
+  [key: string]: unknown;
+}
+
 export interface ToolDefinition {
   type: "function";
   function: {
     name: string;
     description: string;
-    parameters: {
-      type: "object";
-      properties: Record<string, unknown>;
-      required?: string[];
-      additionalProperties?: boolean;
-    };
+    parameters: JsonSchemaObject;
     strict?: boolean;
   };
 }
