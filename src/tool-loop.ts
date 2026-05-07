@@ -7,11 +7,13 @@ import { ReasoningState } from "./reasoning.js";
 import { ToolLoopError } from "./errors.js";
 
 export interface ToolLoopCallbacks {
+  /** Observe or override a tool call. Return undefined/null to delegate to the registered handler. */
   onToolCall?: (
     name: string,
     args: Record<string, unknown>,
     toolCallId: string,
-  ) => Promise<string> | string;
+  ) => Promise<string | null | undefined> | string | null | undefined;
+  /** Called after each tool call completes with the result */
   onToolResult?: (name: string, result: string) => void;
 }
 
@@ -216,13 +218,19 @@ export class ToolLoop {
 
       if (callbacks?.onToolCall) {
         const result = await callbacks.onToolCall(name, args, tc.id);
-        results.push({
-          tool_call_id: tc.id,
-          role: "tool" as const,
-          content: result,
-        });
-        callbacks.onToolResult?.(name, result);
-      } else if (this.toolManager.hasHandler(name)) {
+        if (result !== undefined && result !== null) {
+          // Callback handled it — use its return value
+          results.push({
+            tool_call_id: tc.id,
+            role: "tool" as const,
+            content: result,
+          });
+          callbacks.onToolResult?.(name, result);
+          continue;
+        }
+        // result is undefined/null — fall through to registered handler
+      }
+      if (this.toolManager.hasHandler(name)) {
         const tr = await this.toolManager.executeToolCall(name, args, tc.id);
         results.push(tr);
         callbacks?.onToolResult?.(name, typeof tr.content === "string" ? tr.content : JSON.stringify(tr.content));
