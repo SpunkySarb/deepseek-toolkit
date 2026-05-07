@@ -30,13 +30,6 @@ export interface BraveWebSearchParams {
   safesearch?: "off" | "moderate" | "strict";
 }
 
-export interface BraveLLMContextParams {
-  query: string;
-  freshness?: "pd" | "pw" | "pm" | "py";
-  maxTokens?: number;
-  maxUrls?: number;
-}
-
 // -- Built-in tool definitions ------------------------------------------------
 
 export const BRAVE_WEB_SEARCH_TOOL_DEFINITION: ToolDefinition = {
@@ -68,43 +61,6 @@ export const BRAVE_WEB_SEARCH_TOOL_DEFINITION: ToolDefinition = {
           type: "string",
           enum: ["off", "moderate", "strict"],
           description: "Content filter level",
-        },
-      },
-      required: ["query"],
-    },
-  },
-};
-
-export const BRAVE_LLM_CONTEXT_TOOL_DEFINITION: ToolDefinition = {
-  type: "function",
-  function: {
-    name: "brave_llm_context",
-    description:
-      "Search the web and get content optimized for AI consumption. Returns pre-extracted text snippets from web pages, ideal for grounding responses in current information.",
-    parameters: {
-      type: "object",
-      properties: {
-        query: {
-          type: "string",
-          description: "The search query",
-        },
-        freshness: {
-          type: "string",
-          enum: ["pd", "pw", "pm", "py"],
-          description:
-            "Filter results by freshness: pd (24h), pw (7 days), pm (month), py (year)",
-        },
-        maxTokens: {
-          type: "integer",
-          minimum: 1024,
-          maximum: 32768,
-          description: "Max tokens in context (default 8192)",
-        },
-        maxUrls: {
-          type: "integer",
-          minimum: 1,
-          maximum: 50,
-          description: "Maximum URLs to include (default 20)",
         },
       },
       required: ["query"],

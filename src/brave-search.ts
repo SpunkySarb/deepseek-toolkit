@@ -38,8 +38,9 @@ export class BraveSearchClient {
     });
 
     if (!response.ok) {
+      const body = await response.text().catch(() => "");
       throw new BraveSearchError(
-        `Brave Web Search failed: ${response.status} ${response.statusText}`,
+        `Brave Web Search failed: ${response.status} — ${body || response.statusText}`,
         response.status,
       );
     }
@@ -54,8 +55,6 @@ export class BraveSearchClient {
     const params = new URLSearchParams();
     params.set("q", query);
 
-    if (options.country) params.set("country", options.country);
-    if (options.searchLang) params.set("search_lang", options.searchLang);
     if (options.freshness) params.set("freshness", options.freshness);
     if (options.count !== undefined)
       params.set("count", String(options.count));
@@ -79,7 +78,6 @@ export class BraveSearchClient {
       params.set("context_threshold_mode", options.contextThresholdMode);
     if (options.enableLocal !== undefined && options.enableLocal !== null)
       params.set("enable_local", String(options.enableLocal));
-    if (options.safesearch) params.set("safesearch", options.safesearch);
 
     const url = `${BRAVE_LLM_CONTEXT_URL}?${params.toString()}`;
 
@@ -91,8 +89,9 @@ export class BraveSearchClient {
     });
 
     if (!response.ok) {
+      const body = await response.text().catch(() => "");
       throw new BraveSearchError(
-        `Brave LLM Context failed: ${response.status} ${response.statusText}`,
+        `Brave LLM Context failed: ${response.status} — ${body || response.statusText}`,
         response.status,
       );
     }

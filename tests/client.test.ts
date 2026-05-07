@@ -31,7 +31,6 @@ describe("DeepSeekClient", () => {
       braveSearchApiKey: "bsk-test",
     });
     expect(client.hasTool("brave_web_search")).toBe(true);
-    expect(client.hasTool("brave_llm_context")).toBe(true);
   });
 
   it("does not register Brave Search tools without API key", () => {
@@ -39,7 +38,6 @@ describe("DeepSeekClient", () => {
       deepseekApiKey: "sk-test",
     });
     expect(client.hasTool("brave_web_search")).toBe(false);
-    expect(client.hasTool("brave_llm_context")).toBe(false);
   });
 
   it("configures model on init", () => {

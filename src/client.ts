@@ -30,11 +30,8 @@ import { BraveSearchClient } from "./brave-search.js";
 import { ToolManager } from "./tool-manager.js";
 import { ToolLoop, type ToolLoopCallbacks } from "./tool-loop.js";
 import { resolveConfig } from "./defaults.js";
-import {
-  BRAVE_WEB_SEARCH_TOOL_DEFINITION,
-  BRAVE_LLM_CONTEXT_TOOL_DEFINITION,
-} from "./defaults.js";
-import type { BraveWebSearchParams, BraveLLMContextParams } from "./defaults.js";
+import { BRAVE_WEB_SEARCH_TOOL_DEFINITION } from "./defaults.js";
+import type { BraveWebSearchParams } from "./defaults.js";
 import { ConfigError } from "./errors.js";
 
 export class DeepSeekClient {
@@ -81,20 +78,6 @@ export class DeepSeekClient {
         },
       );
 
-      this.toolManager.addTool<BraveLLMContextParams>(
-        BRAVE_LLM_CONTEXT_TOOL_DEFINITION,
-        async (args: BraveLLMContextParams) => {
-          const result = await this.braveSearch!.llmContext(args.query, {
-            freshness: args.freshness,
-            maxTokens: args.maxTokens,
-            maxUrls: args.maxUrls,
-            country: this.config.braveSearch.country,
-            searchLang: this.config.braveSearch.searchLang,
-            safesearch: this.config.braveSearch.safesearch,
-          });
-          return JSON.stringify(result);
-        },
-      );
     }
   }
 
