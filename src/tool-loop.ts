@@ -88,42 +88,52 @@ export class ToolLoop {
       ...(tools ?? []),
     ];
 
+    let iterations = 0;
     let streamResult = await this.makeStreamRequest(messages, allTools, toolChoice);
 
-    let iterations = 0;
-    let accumulatedToolCalls: Array<{
-      id: string;
-      name: string;
-      arguments: string;
-    }> = [];
-    let accumulatedReasoning = "";
-    let finalChunks: StreamChunk[] = [];
+    while (iterations < this.config.maxToolLoopIterations) {
+      const accumulatedToolCalls: Array<{
+        id: string;
+        name: string;
+        arguments: string;
+      }> = [];
+      let accumulatedReasoning = "";
+      let toolCallChunks: StreamChunk[] = [];
+      let hasContent = false;
 
-    for await (const chunk of streamResult) {
-      const delta = chunk.choices[0]?.delta;
-      if (delta?.reasoning_content) {
-        accumulatedReasoning += delta.reasoning_content;
-      }
-      if (delta?.tool_calls) {
-        for (const tc of delta.tool_calls) {
-          if (tc.id) {
-            accumulatedToolCalls.push({
-              id: tc.id,
-              name: tc.function?.name ?? "",
-              arguments: tc.function?.arguments ?? "",
-            });
-          } else if (tc.function?.arguments) {
-            const existing = accumulatedToolCalls[accumulatedToolCalls.length - 1];
-            if (existing) {
-              existing.arguments += tc.function.arguments;
+      for await (const chunk of streamResult) {
+        const delta = chunk.choices[0]?.delta;
+        if (delta?.reasoning_content) {
+          accumulatedReasoning += delta.reasoning_content;
+        }
+        if (delta?.content) {
+          hasContent = true;
+        }
+        if (delta?.tool_calls) {
+          for (const tc of delta.tool_calls) {
+            if (tc.id) {
+              accumulatedToolCalls.push({
+                id: tc.id,
+                name: tc.function?.name ?? "",
+                arguments: tc.function?.arguments ?? "",
+              });
+            } else if (tc.function?.arguments) {
+              const existing = accumulatedToolCalls[accumulatedToolCalls.length - 1];
+              if (existing) {
+                existing.arguments += tc.function.arguments;
+              }
             }
           }
         }
+        toolCallChunks.push(chunk);
       }
-      finalChunks.push(chunk);
-    }
 
-    if (accumulatedToolCalls.length > 0 && iterations < this.config.maxToolLoopIterations) {
+      // No tool calls → return the final stream chunks
+      if (accumulatedToolCalls.length === 0) {
+        return this.chunksToAsyncIterable(toolCallChunks);
+      }
+
+      iterations++;
       this.reasoning.startToolCallTurn();
 
       const toolResults = await this.executeToolCalls(
@@ -137,7 +147,7 @@ export class ToolLoop {
 
       const assistantMsg: ChatMessage = {
         role: "assistant",
-        content: null,
+        content: hasContent ? null : null,
         reasoning_content: accumulatedReasoning || null,
         tool_calls: accumulatedToolCalls.map((tc) => ({
           id: tc.id,
@@ -150,12 +160,14 @@ export class ToolLoop {
         messages.push(tr);
       }
 
-      const nextResponse = await this.makeStreamRequest(messages, allTools, toolChoice);
       this.reasoning.endToolCallTurn();
-      return nextResponse;
+      streamResult = await this.makeStreamRequest(messages, allTools, toolChoice);
     }
 
-    return this.chunksToAsyncIterable(finalChunks);
+    throw new ToolLoopError(
+      `Tool call loop exceeded maximum iterations (${this.config.maxToolLoopIterations})`,
+      iterations,
+    );
   }
 
   private async makeRequest(
