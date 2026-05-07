@@ -23,8 +23,8 @@ export interface ToolResult {
   content: string;
 }
 
-export type ToolHandler = (
-  args: Record<string, unknown>,
+export type ToolHandler<TParams = Record<string, unknown>> = (
+  args: TParams,
 ) => Promise<string> | string;
 
 export interface RegisteredTool {

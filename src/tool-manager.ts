@@ -9,16 +9,23 @@ import { ToolError } from "./errors.js";
 export class ToolManager {
   private tools: Map<string, RegisteredTool> = new Map();
 
-  addTool(definition: ToolDefinition, handler?: ToolHandler): void {
+  addTool<TParams = Record<string, unknown>>(
+    definition: ToolDefinition,
+    handler?: ToolHandler<TParams>,
+  ): void {
     const name = definition.function.name;
     if (this.tools.has(name)) {
       throw new ToolError(`Tool "${name}" is already registered`, name);
     }
-    this.tools.set(name, { definition, handler });
+    // Safe: at runtime handler receives Record<string,unknown> from JSON.parse
+    this.tools.set(name, { definition, handler: handler as ToolHandler });
   }
 
-  addTools(
-    tools: Array<{ definition: ToolDefinition; handler?: ToolHandler }>,
+  addTools<TParams = Record<string, unknown>>(
+    tools: Array<{
+      definition: ToolDefinition;
+      handler?: ToolHandler<TParams>;
+    }>,
   ): void {
     for (const tool of tools) {
       this.addTool(tool.definition, tool.handler);

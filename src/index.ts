@@ -19,6 +19,10 @@ export {
   BRAVE_WEB_SEARCH_TOOL_DEFINITION,
   BRAVE_LLM_CONTEXT_TOOL_DEFINITION,
 } from "./defaults.js";
+export type {
+  BraveWebSearchParams,
+  BraveLLMContextParams,
+} from "./defaults.js";
 
 export type {
   ModelName,

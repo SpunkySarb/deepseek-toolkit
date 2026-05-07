@@ -34,6 +34,7 @@ import {
   BRAVE_WEB_SEARCH_TOOL_DEFINITION,
   BRAVE_LLM_CONTEXT_TOOL_DEFINITION,
 } from "./defaults.js";
+import type { BraveWebSearchParams, BraveLLMContextParams } from "./defaults.js";
 import { ConfigError } from "./errors.js";
 
 export class DeepSeekClient {
@@ -66,40 +67,31 @@ export class DeepSeekClient {
 
   private registerBuiltinTools(): void {
     if (this.braveSearch) {
-      this.toolManager.addTool(
+      this.toolManager.addTool<BraveWebSearchParams>(
         BRAVE_WEB_SEARCH_TOOL_DEFINITION,
-        async (args) => {
-          const result = await this.braveSearch!.webSearch(
-            args.query as string,
-            {
-              freshness: args.freshness as BraveWebSearchOptions["freshness"],
-              safesearch:
-                (args.safesearch as BraveWebSearchOptions["safesearch"]) ??
-                this.config.braveSearch.safesearch,
-              count:
-                (args.count as number) ?? this.config.braveSearch.count,
-              country: this.config.braveSearch.country,
-              searchLang: this.config.braveSearch.searchLang,
-            },
-          );
+        async (args: BraveWebSearchParams) => {
+          const result = await this.braveSearch!.webSearch(args.query, {
+            freshness: args.freshness,
+            safesearch: args.safesearch ?? this.config.braveSearch.safesearch,
+            count: args.count ?? this.config.braveSearch.count,
+            country: this.config.braveSearch.country,
+            searchLang: this.config.braveSearch.searchLang,
+          });
           return JSON.stringify(result);
         },
       );
 
-      this.toolManager.addTool(
+      this.toolManager.addTool<BraveLLMContextParams>(
         BRAVE_LLM_CONTEXT_TOOL_DEFINITION,
-        async (args) => {
-          const result = await this.braveSearch!.llmContext(
-            args.query as string,
-            {
-              freshness: args.freshness as BraveLLMContextOptions["freshness"],
-              maxTokens: args.maxTokens as number,
-              maxUrls: args.maxUrls as number,
-              country: this.config.braveSearch.country,
-              searchLang: this.config.braveSearch.searchLang,
-              safesearch: this.config.braveSearch.safesearch,
-            },
-          );
+        async (args: BraveLLMContextParams) => {
+          const result = await this.braveSearch!.llmContext(args.query, {
+            freshness: args.freshness,
+            maxTokens: args.maxTokens,
+            maxUrls: args.maxUrls,
+            country: this.config.braveSearch.country,
+            searchLang: this.config.braveSearch.searchLang,
+            safesearch: this.config.braveSearch.safesearch,
+          });
           return JSON.stringify(result);
         },
       );
@@ -210,12 +202,18 @@ export class DeepSeekClient {
     }
   }
 
-  addTool(definition: ToolDefinition, handler?: ToolHandler): void {
+  addTool<TParams = Record<string, unknown>>(
+    definition: ToolDefinition,
+    handler?: ToolHandler<TParams>,
+  ): void {
     this.toolManager.addTool(definition, handler);
   }
 
-  addTools(
-    tools: Array<{ definition: ToolDefinition; handler?: ToolHandler }>,
+  addTools<TParams = Record<string, unknown>>(
+    tools: Array<{
+      definition: ToolDefinition;
+      handler?: ToolHandler<TParams>;
+    }>,
   ): void {
     this.toolManager.addTools(tools);
   }

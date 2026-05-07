@@ -1,4 +1,5 @@
 import type { DeepSeekConfig, ResolvedConfig } from "./types/config.js";
+import type { ToolDefinition } from "./types/tools.js";
 import {
   DEEPSEEK_MODELS,
   DEEPSEEK_BASE_URL,
@@ -20,8 +21,26 @@ export const DEFAULT_CONFIG = {
   maxToolLoopIterations: DEFAULT_MAX_TOOL_LOOP_ITERATIONS,
 };
 
-export const BRAVE_WEB_SEARCH_TOOL_DEFINITION = {
-  type: "function" as const,
+// -- Typed params for built-in tools ------------------------------------------
+
+export interface BraveWebSearchParams {
+  query: string;
+  freshness?: "pd" | "pw" | "pm" | "py";
+  count?: number;
+  safesearch?: "off" | "moderate" | "strict";
+}
+
+export interface BraveLLMContextParams {
+  query: string;
+  freshness?: "pd" | "pw" | "pm" | "py";
+  maxTokens?: number;
+  maxUrls?: number;
+}
+
+// -- Built-in tool definitions ------------------------------------------------
+
+export const BRAVE_WEB_SEARCH_TOOL_DEFINITION: ToolDefinition = {
+  type: "function",
   function: {
     name: "brave_web_search",
     description:
@@ -56,8 +75,8 @@ export const BRAVE_WEB_SEARCH_TOOL_DEFINITION = {
   },
 };
 
-export const BRAVE_LLM_CONTEXT_TOOL_DEFINITION = {
-  type: "function" as const,
+export const BRAVE_LLM_CONTEXT_TOOL_DEFINITION: ToolDefinition = {
+  type: "function",
   function: {
     name: "brave_llm_context",
     description:
@@ -93,34 +112,27 @@ export const BRAVE_LLM_CONTEXT_TOOL_DEFINITION = {
   },
 };
 
+// -- Config resolver ----------------------------------------------------------
+
 export function resolveConfig(config: DeepSeekConfig): ResolvedConfig {
   return {
     deepseekApiKey: config.deepseekApiKey,
     braveSearchApiKey: config.braveSearchApiKey,
-    model: (config.model as ResolvedConfig["model"]) ?? DEFAULT_CONFIG.model,
+    model: config.model ?? DEFAULT_CONFIG.model,
     baseURL: config.baseURL ?? DEFAULT_CONFIG.baseURL,
-    thinking:
-      (config.thinking as ResolvedConfig["thinking"]) ??
-      DEFAULT_CONFIG.thinking,
-    reasoningEffort:
-      (config.reasoningEffort as ResolvedConfig["reasoningEffort"]) ??
-      DEFAULT_CONFIG.reasoningEffort,
+    thinking: config.thinking ?? DEFAULT_CONFIG.thinking,
+    reasoningEffort: config.reasoningEffort ?? DEFAULT_CONFIG.reasoningEffort,
     braveSearch: {
       safesearch:
-        (config.braveSearch?.safesearch as ResolvedConfig["braveSearch"]["safesearch"]) ??
-        DEFAULT_CONFIG.braveSearch.safesearch,
+        config.braveSearch?.safesearch ?? DEFAULT_CONFIG.braveSearch.safesearch,
       freshness:
-        (config.braveSearch?.freshness as ResolvedConfig["braveSearch"]["freshness"]) ??
-        DEFAULT_CONFIG.braveSearch.freshness,
+        config.braveSearch?.freshness ?? DEFAULT_CONFIG.braveSearch.freshness,
       country:
-        (config.braveSearch?.country as string) ??
-        DEFAULT_CONFIG.braveSearch.country,
+        config.braveSearch?.country ?? DEFAULT_CONFIG.braveSearch.country,
       searchLang:
-        (config.braveSearch?.searchLang as string) ??
-        DEFAULT_CONFIG.braveSearch.searchLang,
+        config.braveSearch?.searchLang ?? DEFAULT_CONFIG.braveSearch.searchLang,
       count:
-        (config.braveSearch?.count as number) ??
-        DEFAULT_CONFIG.braveSearch.count,
+        config.braveSearch?.count ?? DEFAULT_CONFIG.braveSearch.count,
     },
     maxTokens: config.maxTokens,
     temperature: config.temperature,
