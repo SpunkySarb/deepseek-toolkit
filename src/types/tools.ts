@@ -1,27 +1,13 @@
-export interface ToolDefinition {
-  type: "function";
-  function: {
-    name: string;
-    description: string;
-    parameters: Record<string, unknown>;
-    strict?: boolean;
-  };
-}
+import type OpenAI from "openai";
 
-export interface ToolCall {
-  id: string;
-  type: "function";
-  function: {
-    name: string;
-    arguments: string;
-  };
-}
+// Directly use OpenAI's tool types — no reinvention
+export type ToolDefinition = OpenAI.Chat.Completions.ChatCompletionFunctionTool;
 
-export interface ToolResult {
-  tool_call_id: string;
-  role: "tool";
-  content: string;
-}
+export type ToolCall = OpenAI.Chat.Completions.ChatCompletionMessageFunctionToolCall;
+
+export type ToolResult = OpenAI.Chat.Completions.ChatCompletionToolMessageParam;
+
+export type ToolChoice = OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
 
 export type ToolHandler<TParams = Record<string, unknown>> = (
   args: TParams,
@@ -31,9 +17,3 @@ export interface RegisteredTool {
   definition: ToolDefinition;
   handler?: ToolHandler;
 }
-
-export type ToolChoice =
-  | "auto"
-  | "none"
-  | "required"
-  | { type: "function"; function: { name: string } };

@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import type { ChatMessage, ChatResponse, StreamChunk } from "./types/chat.js";
-import type { ToolDefinition, ToolChoice } from "./types/tools.js";
+import type { ToolDefinition, ToolCall, ToolChoice } from "./types/tools.js";
 import type { ResolvedConfig } from "./types/config.js";
 import { ToolManager } from "./tool-manager.js";
 import { ReasoningState } from "./reasoning.js";
@@ -47,7 +47,10 @@ export class ToolLoop {
       const choice = response.choices[0];
       if (!choice) break;
 
-      const toolCalls = choice.message.tool_calls ?? [];
+      const rawCalls = choice.message.tool_calls ?? [];
+      const toolCalls = rawCalls.filter(
+        (tc): tc is ToolCall => tc.type === "function",
+      );
       const toolResults = await this.executeToolCalls(toolCalls, callbacks);
 
       messages.push(choice.message);
@@ -198,11 +201,7 @@ export class ToolLoop {
   }
 
   private async executeToolCalls(
-    toolCalls: Array<{
-      id: string;
-      type: string;
-      function: { name: string; arguments: string };
-    }>,
+    toolCalls: ToolCall[],
     callbacks?: ToolLoopCallbacks,
   ) {
     const results = [];
@@ -226,7 +225,7 @@ export class ToolLoop {
       } else if (this.toolManager.hasHandler(name)) {
         const tr = await this.toolManager.executeToolCall(name, args, tc.id);
         results.push(tr);
-        callbacks?.onToolResult?.(name, tr.content);
+        callbacks?.onToolResult?.(name, typeof tr.content === "string" ? tr.content : JSON.stringify(tr.content));
       } else {
         results.push({
           tool_call_id: tc.id,

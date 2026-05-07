@@ -1,4 +1,4 @@
-import type { ChatMessage } from "./types/chat.js";
+import type { ChatMessage, DeepSeekAssistantMessage } from "./types/chat.js";
 
 export class ReasoningState {
   private activeToolCall = false;
@@ -20,12 +20,14 @@ export class ReasoningState {
   }
 
   cleanMessageForContext(message: ChatMessage): ChatMessage {
-    if (this.activeToolCall) {
-      return message;
-    }
-    if (message.reasoning_content && !message.tool_calls?.length) {
-      const { reasoning_content: _, ...rest } = message;
-      return rest as ChatMessage;
+    if (this.activeToolCall) return message;
+
+    if (message.role === "assistant" && "reasoning_content" in message) {
+      const msg = message as DeepSeekAssistantMessage;
+      if (msg.reasoning_content && !msg.tool_calls?.length) {
+        const { reasoning_content: _, ...rest } = msg;
+        return rest as ChatMessage;
+      }
     }
     return message;
   }
