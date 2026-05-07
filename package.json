@@ -1,6 +1,6 @@
 {
   "name": "deepseek-toolkit",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "DeepSeek API toolkit with built-in Brave Search — batteries-included wrapper for chat, tools, and web search",
   "type": "module",
   "main": "./dist/index.cjs",
