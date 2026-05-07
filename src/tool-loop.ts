@@ -96,10 +96,14 @@ export class ToolLoop {
       name: string;
       arguments: string;
     }> = [];
+    let accumulatedReasoning = "";
     let finalChunks: StreamChunk[] = [];
 
     for await (const chunk of streamResult) {
       const delta = chunk.choices[0]?.delta;
+      if (delta?.reasoning_content) {
+        accumulatedReasoning += delta.reasoning_content;
+      }
       if (delta?.tool_calls) {
         for (const tc of delta.tool_calls) {
           if (tc.id) {
@@ -134,6 +138,7 @@ export class ToolLoop {
       const assistantMsg: ChatMessage = {
         role: "assistant",
         content: null,
+        reasoning_content: accumulatedReasoning || null,
         tool_calls: accumulatedToolCalls.map((tc) => ({
           id: tc.id,
           type: "function" as const,
