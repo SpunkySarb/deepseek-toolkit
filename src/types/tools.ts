@@ -1,8 +1,22 @@
 import type OpenAI from "openai";
 
-// Directly use OpenAI's tool types — no reinvention
-export type ToolDefinition = OpenAI.Chat.Completions.ChatCompletionFunctionTool;
+// Stricter than OpenAI's FunctionDefinition — parameters must have type + properties
+export interface ToolDefinition {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: "object";
+      properties: Record<string, unknown>;
+      required?: string[];
+      additionalProperties?: boolean;
+    };
+    strict?: boolean;
+  };
+}
 
+// These remain directly from OpenAI
 export type ToolCall = OpenAI.Chat.Completions.ChatCompletionMessageFunctionToolCall;
 
 export type ToolResult = OpenAI.Chat.Completions.ChatCompletionToolMessageParam;
